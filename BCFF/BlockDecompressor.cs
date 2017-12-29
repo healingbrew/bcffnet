@@ -170,7 +170,7 @@ namespace BCFF
             }
 
             bitmap?.Dispose();
-            bitmap = new Bitmap(header.Width, header.Height);
+            bitmap = new Bitmap(header.Width, header.Height, PixelFormat.Format24bppRgb);
             bool IsBC5 = !IsBC4;
 
             using (BinaryReader reader = new BinaryReader(data, Encoding.Default, true))
@@ -178,6 +178,10 @@ namespace BCFF
                 data.Position = start;
                 int x = 0;
                 int y = 0;
+                BitmapData image = bitmap.LockBits(new Rectangle(0, 0, header.Width, header.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
+                int imageDataSize = Math.Abs(image.Stride) * image.Height;
+                byte[] imageData = new byte[imageDataSize];
+                Marshal.Copy(image.Scan0, imageData, 0, imageDataSize);
                 for (int i = 0; i < header.Width * header.Height; i += 16)
                 {
                     float[] red = ReadIndice(reader);
@@ -190,7 +194,12 @@ namespace BCFF
                         int r = (int)Math.Floor(color[0] * 255.0f);
                         int g = (int)Math.Floor(color[1] * 255.0f);
                         int b = (int)Math.Floor(color[2] * 255.0f);
-                        bitmap.SetPixel(x, y, Color.FromArgb(r, g, b));
+
+                        int stride = x + y * bitmap.Height;
+
+                        imageData[stride * 3 + 2] = (byte)r;
+                        imageData[stride * 3 + 1] = (byte)g;
+                        imageData[stride * 3 + 0] = (byte)b;
                         x += 1;
                         if (x - sx >= 4)
                         {
@@ -206,6 +215,8 @@ namespace BCFF
                         y += 4;
                     }
                 }
+                Marshal.Copy(imageData, 0, image.Scan0, imageDataSize);
+                bitmap.UnlockBits(image);
             }
         }
 
