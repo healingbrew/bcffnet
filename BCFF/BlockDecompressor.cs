@@ -84,11 +84,11 @@ namespace BCFF
 
         private float GetRed(int Red0, int Red1, byte Index)
         {
-            if(Index == 0)
+            if (Index == 0)
             {
                 return Red0 / 255.0f;
             }
-            if(Index == 1)
+            if (Index == 1)
             {
                 return Red1 / 255.0f;
             }
@@ -123,7 +123,7 @@ namespace BCFF
         {
             int Red0;
             int Red1;
-            
+
             Red0 = reader.ReadByte();
             Red1 = reader.ReadByte();
 
@@ -141,7 +141,28 @@ namespace BCFF
             return block;
         }
 
+        public static float[] VoidPass(float r, float g)
+        {
+            return new float[] { r, g, 0 };
+        }
+
+        public static float[] NormalMapPass(float x, float y)
+        {
+            float nx = 2 * x - 1;
+            float ny = 2 * y - 1;
+            float nz = 0.0f;
+            if (1 - nx * nx - ny * ny > 0)
+                nz = (float)Math.Sqrt(1 - nx * nx - ny * ny);
+            float z = Math.Min(Math.Max((nz + 1) / 2.0f, 0.0f), 1.0f);
+            return new float[] { x, y, z };
+        }
+
         public void CreateImage()
+        {
+            CreateImage(VoidPass);
+        }
+
+        public void CreateImage(Func<float, float, float[]> pass)
         {
             if (!IsValid)
             {
@@ -165,11 +186,13 @@ namespace BCFF
                     int sy = y;
                     for (int j = 0; j < 16; ++j)
                     {
-                        int r = (int)Math.Floor(red[j] * 255.0f);
-                        int g = (int)Math.Floor(green?[j] * 255.0f ?? 255);
-                        bitmap.SetPixel(x, y, Color.FromArgb(r, g, 0));
+                        float[] color = pass(red[j], green?[j] ?? 0.0f);
+                        int r = (int)Math.Floor(color[0] * 255.0f);
+                        int g = (int)Math.Floor(color[1] * 255.0f);
+                        int b = (int)Math.Floor(color[2] * 255.0f);
+                        bitmap.SetPixel(x, y, Color.FromArgb(r, g, b));
                         x += 1;
-                        if(x - sx >= 4)
+                        if (x - sx >= 4)
                         {
                             x = sx;
                             y += 1;
@@ -211,7 +234,7 @@ namespace BCFF
             using (Stream input = File.OpenRead(args[0]))
             {
                 BlockDecompressor bcff = new BlockDecompressor(input);
-                bcff.CreateImage();
+                bcff.CreateImage(NormalMapPass);
                 bcff.Image.Save(Path.ChangeExtension(args[0], "tif"), ImageFormat.Tiff);
             }
         }
