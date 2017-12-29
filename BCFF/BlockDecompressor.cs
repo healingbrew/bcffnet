@@ -146,6 +146,12 @@ namespace BCFF
             return new float[] { r, g, 0 };
         }
 
+
+        public static float[] GrayscalePass(float r, float g)
+        {
+            return new float[] { r, r, r };
+        }
+
         public static float[] NormalMapPass(float x, float y)
         {
             float nx = 2 * x - 1;
@@ -159,7 +165,14 @@ namespace BCFF
 
         public void CreateImage()
         {
-            CreateImage(VoidPass);
+            if (IsBC4)
+            {
+                CreateImage(GrayscalePass);
+            }
+            else
+            {
+                CreateImage(NormalMapPass);
+            }
         }
 
         public void CreateImage(Func<float, float, float[]> pass)
@@ -195,7 +208,7 @@ namespace BCFF
                         int g = (int)Math.Floor(color[1] * 255.0f);
                         int b = (int)Math.Floor(color[2] * 255.0f);
 
-                        int stride = x + y * bitmap.Height;
+                        int stride = x + y * bitmap.Width;
 
                         imageData[stride * 3 + 2] = (byte)r;
                         imageData[stride * 3 + 1] = (byte)g;
@@ -245,7 +258,7 @@ namespace BCFF
             using (Stream input = File.OpenRead(args[0]))
             {
                 BlockDecompressor bcff = new BlockDecompressor(input);
-                bcff.CreateImage(NormalMapPass);
+                bcff.CreateImage(GrayscalePass);
                 bcff.Image.Save(Path.ChangeExtension(args[0], "tif"), ImageFormat.Tiff);
             }
         }
