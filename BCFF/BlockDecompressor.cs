@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
+#pragma warning disable CS0649 // #warning unassigned
 namespace BCFF
 {
     public class BlockDecompressor : IDisposable
@@ -264,3 +265,4 @@ namespace BCFF
         }
     }
 }
+#pragma warning restore CS0649 // #warning unassigned
