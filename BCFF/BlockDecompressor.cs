@@ -192,7 +192,7 @@ namespace BCFF
                 int x = 0;
                 int y = 0;
                 BitmapData image = bitmap.LockBits(new Rectangle(0, 0, header.Width, header.Height), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
-                int imageDataSize = Math.Abs(image.Stride) * image.Height;
+                int imageDataSize = Math.Abs(image.Stride) * header.Height;
                 byte[] imageData = new byte[imageDataSize];
                 Marshal.Copy(image.Scan0, imageData, 0, imageDataSize);
                 for (int i = 0; i < header.Width * header.Height; i += 16)
@@ -208,7 +208,7 @@ namespace BCFF
                         int g = (int)Math.Floor(color[1] * 255.0f);
                         int b = (int)Math.Floor(color[2] * 255.0f);
 
-                        int stride = x + y * bitmap.Width;
+                        int stride = x + y * header.Width;
 
                         imageData[stride * 3 + 2] = (byte)r;
                         imageData[stride * 3 + 1] = (byte)g;
