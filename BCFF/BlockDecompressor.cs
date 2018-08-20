@@ -64,7 +64,7 @@ namespace BCFF
         private bool IsValid => DXGI_BC4.Contains(header10.Format) || DXGI_BC5.Contains(header10.Format) || header.PixelFormat.FourCC == FOURCC_ATI1 || header.PixelFormat.FourCC == FOURCC_ATI2;
         private bool IsBC4 => DXGI_BC4.Contains(header10.Format) || header.PixelFormat.FourCC == FOURCC_ATI1;
 
-        private long start = 0;
+        private readonly long start = 0;
 
         public BlockDecompressor(Stream input)
         {
